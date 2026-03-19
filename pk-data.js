@@ -51,6 +51,23 @@ const PK = {
 
   DIAS_SEMANA: ['Lunes','Martes','Miércoles','Jueves','Viernes'],
 
+  // ─── GOOGLE SHEETS CONFIG ────────────────────────────────
+  SHEETS_URL: 'https://script.google.com/macros/s/AKfycbybgeGV-wFKlSWh8QBvfm8xMQX244U0dLpZkdKyr2mqqhv9Nc4V1ovYoQYN8945bcQT6A/exec',
+
+  async syncSheets(payload) {
+    try {
+      await fetch(this.SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      console.log('Sincronizado con Google Sheets:', payload.tipo);
+    } catch (err) {
+      console.warn('Error sincronizando Sheets:', err);
+    }
+  },
+
   // ─── PLANIFICACIONES ────────────────────────────────────
   getPlanificaciones(prevId) {
     const key = `pk_plan_${prevId}`;
@@ -69,6 +86,15 @@ const PK = {
       semana,
       msg: `${this.PREVENCIONISTAS[prevId]?.nombre} cargó planificación para la semana ${semana}`,
       fecha: new Date().toISOString()
+    });
+    // ── Sync Google Sheets ──
+    this.syncSheets({
+      tipo: 'planificacion',
+      prevId,
+      prevNombre: this.PREVENCIONISTAS[prevId]?.nombre,
+      semana,
+      semanaLabel: this.getSemanaLabel(semana),
+      actividades
     });
     return obj;
   },
@@ -97,6 +123,18 @@ const PK = {
         urgencia: entry.urgencia
       });
     }
+    // ── Sync Google Sheets ──
+    this.syncSheets({
+      tipo: 'bitacora',
+      prevId,
+      prevNombre: this.PREVENCIONISTAS[prevId]?.nombre,
+      semana: entry.semana || this.getSemanaActual(),
+      tipo_actividad: entry.tipo,
+      titulo: entry.titulo,
+      empresa: entry.empresa,
+      urgencia: entry.urgencia,
+      descripcion: entry.descripcion
+    });
     return entry;
   },
 
@@ -180,6 +218,27 @@ const PK = {
     const c = this.getCumplimiento(prevId, semana);
     c[actividadId] = estado;
     localStorage.setItem(`pk_cumpl_${prevId}_${semana}`, JSON.stringify(c));
+    // ── Sync Google Sheets (sincroniza todo el cumplimiento de la semana) ──
+    const plan = this.getPlanSemana(prevId, semana);
+    if (plan && plan.actividades.length) {
+      const pct = this.getPorcentajeCumplimiento(prevId, semana);
+      const items = plan.actividades.map(a => ({
+        id: a.id,
+        titulo: a.titulo,
+        empresa: a.empresa,
+        dia: a.dia,
+        estado: c[a.id] || 'pendiente'
+      }));
+      this.syncSheets({
+        tipo: 'cumplimiento',
+        prevId,
+        prevNombre: this.PREVENCIONISTAS[prevId]?.nombre,
+        semana,
+        semanaLabel: this.getSemanaLabel(semana),
+        porcentaje: pct,
+        items
+      });
+    }
   },
   getPorcentajeCumplimiento(prevId, semana) {
     const plan = this.getPlanSemana(prevId, semana);
