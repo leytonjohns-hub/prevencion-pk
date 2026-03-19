@@ -12,16 +12,16 @@ const PK = {
   },
   requireAuth(perfil) {
     const u = this.currentUser();
-    if (!u) { window.location.href = 'login.html'; return null; }
+    if (!u) { window.location.href = 'index.html'; return null; }
     if (perfil && u.perfil !== perfil && !(Array.isArray(perfil) && perfil.includes(u.perfil))) {
-      window.location.href = 'login.html'; return null;
+      window.location.href = 'index.html'; return null;
     }
     return u;
   },
   logout() {
     localStorage.removeItem('pk_user');
     localStorage.removeItem('pk_username');
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
   },
 
   // ─── PREVENCIONISTAS ────────────────────────────────────
@@ -122,19 +122,52 @@ const PK = {
   getUnread() {
     return this.getNotificaciones().filter(n => !n.leida).length;
   },
+  // ─── EMAILJS CONFIG ─────────────────────────────────────
+  EMAILJS_PUBLIC_KEY:  'VpRr06TitiQivhfXX',
+  EMAILJS_SERVICE_ID:  'service_7qm28w1',
+  EMAILJS_TEMPLATE_ID: 'template_us7iqap',
+
+  async enviarEmailReal(asunto, mensaje) {
+    const fecha = new Date().toLocaleString('es-CL', {
+      weekday: 'long', year: 'numeric', month: 'long',
+      day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    const cuerpoCompleto = `🛡️ SEGURIDAD PK SpA — SISTEMA DE PREVENCIÓN\n\n${mensaje}\n\n📅 Fecha: ${fecha}\n🌐 Acceda al sistema: https://leytonjohns-hub.github.io/prevencion-pk/\n\nMensaje automático del Sistema de Control de Prevencionistas.\nDesarrollado por Luis Leyton-Johns para Seguridad PK SpA.`;
+
+    // Enviamos a cada destinatario individualmente para garantizar entrega
+    for (const email of this.EMAILS_GERENCIA) {
+      try {
+        await emailjs.send(
+          this.EMAILJS_SERVICE_ID,
+          this.EMAILJS_TEMPLATE_ID,
+          { asunto, mensaje: cuerpoCompleto },
+          this.EMAILJS_PUBLIC_KEY
+        );
+        console.log('✅ Email enviado a:', email);
+      } catch (err) {
+        console.warn('⚠️ EmailJS error para', email, ':', err);
+      }
+    }
+  },
+
   simulateEmail(n) {
+    // Registra internamente
     const emails = JSON.parse(localStorage.getItem('pk_emails') || '[]');
+    const asunto  = n.tipo === 'planificacion'
+      ? '📅 Nueva Planificación Cargada – Seguridad PK SpA'
+      : '🚨 Novedad Importante – Seguridad PK SpA';
     emails.unshift({
       id: Date.now(),
-      asunto: n.tipo === 'planificacion'
-        ? '📅 Nueva Planificación Cargada – Seguridad PK SpA'
-        : '🚨 Novedad Importante – Seguridad PK SpA',
+      asunto,
       cuerpo: n.msg,
       destinatarios: this.EMAILS_GERENCIA,
       fecha: n.fecha,
       enviado: true
     });
     localStorage.setItem('pk_emails', JSON.stringify(emails.slice(0, 50)));
+
+    // Envío real vía EmailJS
+    this.enviarEmailReal(asunto, n.msg);
   },
 
   // ─── CHECKLIST / CUMPLIMIENTO ────────────────────────────

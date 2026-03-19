@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel RRHH – Seguridad PK SpA</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('VpRr06TitiQivhfXX');</script>
 <style>
 :root {
   --pk-dark: #0a0f1e; --pk-navy: #0d1b3e; --pk-blue: #1a3a6e;
@@ -100,6 +102,7 @@ body { font-family: var(--font-body); background: var(--pk-dark); color: var(--p
   <div class="topbar-right">
     <div class="user-name" id="userName">Cargando...</div>
     <button class="logout-btn" onclick="PK.logout()">⎋ Salir</button>
+    <script>PK.logout = function(){ localStorage.removeItem('pk_user'); localStorage.removeItem('pk_username'); window.location.href='index.html'; };</script>
   </div>
 </div>
 

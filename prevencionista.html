@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Panel Prevencionista – Seguridad PK SpA</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('VpRr06TitiQivhfXX');</script>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -225,6 +227,7 @@ body {
       <div class="user-name" id="userName">Cargando...</div>
     </div>
     <button class="logout-btn" onclick="PK.logout()">⎋ Salir</button>
+    <script>PK.logout = function(){ localStorage.removeItem('pk_user'); localStorage.removeItem('pk_username'); window.location.href='index.html'; };</script>
   </div>
 </div>
 
