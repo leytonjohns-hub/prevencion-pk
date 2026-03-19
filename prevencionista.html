@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Prevencionista – Seguridad PK SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pk-dark: #0a0f1e;
+  --pk-navy: #0d1b3e;
+  --pk-blue: #1a3a6e;
+  --pk-accent: #e8a020;
+  --pk-accent2: #f4c842;
+  --pk-red: #c0392b;
+  --pk-green: #27ae60;
+  --pk-light: #ecf0f1;
+  --pk-muted: #8899aa;
+  --pk-card: rgba(13,27,62,0.9);
+  --font-title: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+  --sidebar: 240px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-body);
+  background: var(--pk-dark);
+  color: var(--pk-light);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOP BAR */
+.topbar {
+  background: rgba(13,27,62,0.95);
+  border-bottom: 2px solid var(--pk-accent);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-logo { font-family: var(--font-title); font-size: 22px; font-weight: 700; color: var(--pk-accent); letter-spacing: 3px; }
+.topbar-role { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); border-left: 2px solid var(--pk-blue); padding-left: 14px; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.notif-btn { position: relative; background: none; border: none; color: var(--pk-muted); font-size: 20px; cursor: pointer; padding: 4px; }
+.notif-badge { position: absolute; top: 0; right: 0; background: var(--pk-red); color: white; font-size: 9px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar { width: 34px; height: 34px; background: var(--pk-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid var(--pk-accent); }
+.user-name { font-size: 13px; font-weight: 600; }
+.logout-btn { background: rgba(192,57,43,0.2); border: 1px solid rgba(192,57,43,0.4); color: #e74c3c; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-size: 12px; transition: all 0.2s; }
+.logout-btn:hover { background: rgba(192,57,43,0.35); }
+
+/* MAIN LAYOUT */
+.main-wrap { display: flex; flex: 1; }
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar);
+  background: rgba(10,15,30,0.95);
+  border-right: 1px solid rgba(26,58,110,0.5);
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.sidebar-section { padding: 12px 16px 4px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); font-weight: 600; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 20px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+  font-size: 13px;
+  color: var(--pk-muted);
+}
+.nav-item:hover { background: rgba(26,58,110,0.3); color: var(--pk-light); border-left-color: rgba(232,160,32,0.4); }
+.nav-item.active { background: rgba(26,58,110,0.4); color: var(--pk-accent); border-left-color: var(--pk-accent); font-weight: 600; }
+.nav-icon { font-size: 17px; width: 22px; text-align: center; }
+.sidebar-meta { margin-top: auto; padding: 16px; border-top: 1px solid rgba(26,58,110,0.4); font-size: 11px; color: var(--pk-muted); }
+
+/* CONTENT */
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+
+.page-header { margin-bottom: 24px; }
+.page-title { font-family: var(--font-title); font-size: 28px; font-weight: 700; letter-spacing: 2px; color: var(--pk-light); display: flex; align-items: center; gap: 10px; }
+.page-sub { font-size: 13px; color: var(--pk-muted); margin-top: 4px; }
+
+/* CARDS */
+.card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.card-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; letter-spacing: 1px; color: var(--pk-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(26,58,110,0.4); padding-bottom: 10px; }
+
+/* STATS GRID */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 18px; text-align: center; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, var(--pk-accent)); }
+.stat-val { font-family: var(--font-title); font-size: 36px; font-weight: 700; color: var(--accent-color, var(--pk-accent)); }
+.stat-label { font-size: 11px; color: var(--pk-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+/* PROGRESS BAR */
+.progress-wrap { margin: 12px 0; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--pk-muted); margin-bottom: 6px; }
+.progress-bar { background: rgba(26,58,110,0.4); border-radius: 10px; height: 12px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; background: linear-gradient(90deg, var(--pk-green), #2ecc71); }
+.progress-fill.warn { background: linear-gradient(90deg, var(--pk-accent), var(--pk-accent2)); }
+.progress-fill.danger { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+
+/* FORM ELEMENTS */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--pk-muted); margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; background: rgba(10,15,30,0.7); border: 1px solid rgba(26,58,110,0.7);
+  color: var(--pk-light); padding: 9px 12px; border-radius: 6px;
+  font-family: var(--font-body); font-size: 13px; outline: none; transition: all 0.2s;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--pk-accent); box-shadow: 0 0 0 2px rgba(232,160,32,0.12);
+}
+.form-group select option { background: #0d1b3e; }
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+.btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-family: var(--font-body); font-size: 13px; font-weight: 600; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, var(--pk-accent), var(--pk-accent2)); color: var(--pk-dark); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,160,32,0.35); }
+.btn-secondary { background: rgba(26,58,110,0.4); border: 1px solid rgba(26,58,110,0.7); color: var(--pk-light); }
+.btn-secondary:hover { background: rgba(26,58,110,0.6); }
+.btn-danger { background: rgba(192,57,43,0.2); border: 1px solid rgba(192,57,43,0.4); color: #e74c3c; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* GANTT */
+.gantt-container { overflow-x: auto; }
+.gantt-table { width: 100%; border-collapse: collapse; }
+.gantt-table th { background: rgba(26,58,110,0.5); padding: 8px 10px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--pk-muted); text-align: left; white-space: nowrap; border: 1px solid rgba(26,58,110,0.3); }
+.gantt-table td { padding: 6px 10px; border: 1px solid rgba(26,58,110,0.2); font-size: 12px; vertical-align: middle; }
+.gantt-table tr:hover td { background: rgba(26,58,110,0.15); }
+.gantt-cell { padding: 2px 0; }
+.gantt-bar { height: 22px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 60px; }
+.day-col { min-width: 80px; position: relative; }
+
+/* BITÁCORA */
+.bitacora-list { display: flex; flex-direction: column; gap: 12px; }
+.bit-card { background: rgba(10,15,30,0.6); border: 1px solid rgba(26,58,110,0.4); border-radius: 8px; padding: 14px; border-left: 4px solid var(--urgencia-color, var(--pk-blue)); }
+.bit-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.bit-title { font-weight: 600; font-size: 14px; }
+.bit-badge { font-size: 10px; padding: 3px 8px; border-radius: 10px; background: rgba(232,160,32,0.15); color: var(--pk-accent); border: 1px solid rgba(232,160,32,0.3); }
+.bit-meta { font-size: 11px; color: var(--pk-muted); margin-bottom: 6px; }
+.bit-desc { font-size: 13px; color: rgba(236,240,241,0.8); }
+
+/* CHECKLIST */
+.checklist-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; }
+.checklist-item.done { opacity: 0.7; }
+.check-circle { width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(26,58,110,0.7); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; font-size: 14px; }
+.check-circle:hover { border-color: var(--pk-accent); }
+.check-circle.done { background: var(--pk-green); border-color: var(--pk-green); }
+.check-circle.parcial { background: var(--pk-accent); border-color: var(--pk-accent); }
+.check-info { flex: 1; }
+.check-title { font-size: 13px; font-weight: 600; }
+.check-meta { font-size: 11px; color: var(--pk-muted); margin-top: 2px; }
+.check-actions { display: flex; gap: 6px; }
+.status-sel { background: rgba(10,15,30,0.8); border: 1px solid rgba(26,58,110,0.7); color: var(--pk-light); padding: 5px 8px; border-radius: 5px; font-size: 12px; cursor: pointer; outline: none; }
+
+/* SEMANA SELECTOR */
+.semana-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(13,27,62,0.6); border: 1px solid rgba(26,58,110,0.4); padding: 12px 16px; border-radius: 8px; }
+.semana-nav button { background: rgba(26,58,110,0.4); border: 1px solid rgba(26,58,110,0.6); color: var(--pk-light); padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+.semana-nav button:hover { background: rgba(26,58,110,0.7); }
+.semana-label { flex: 1; text-align: center; font-family: var(--font-title); font-size: 16px; letter-spacing: 1px; color: var(--pk-accent); }
+
+/* TAG badges */
+.urgencia-baja { color: #27ae60; } .urgencia-media { color: var(--pk-accent); } .urgencia-alta { color: #e67e22; } .urgencia-critica { color: #e74c3c; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; font-weight: 600; }
+.tag-baja { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+.tag-media { background: rgba(232,160,32,0.15); color: var(--pk-accent); border: 1px solid rgba(232,160,32,0.3); }
+.tag-alta { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
+.tag-critica { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+/* MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: #0d1b3e; border: 1px solid rgba(26,58,110,0.7); border-top: 2px solid var(--pk-accent); border-radius: 12px; padding: 28px; width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; }
+.modal-title { font-family: var(--font-title); font-size: 20px; font-weight: 700; letter-spacing: 2px; color: var(--pk-accent); margin-bottom: 20px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid rgba(26,58,110,0.4); padding-top: 16px; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 40px; color: var(--pk-muted); }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ALERT */
+.alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.alert-info { background: rgba(26,58,110,0.3); border: 1px solid rgba(26,58,110,0.6); color: #7fb3f5; }
+.alert-success { background: rgba(39,174,96,0.15); border: 1px solid rgba(39,174,96,0.4); color: #2ecc71; }
+.alert-warning { background: rgba(232,160,32,0.15); border: 1px solid rgba(232,160,32,0.4); color: var(--pk-accent); }
+
+/* RESPONSIVE */
+@media(max-width: 768px) {
+  .sidebar { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span style="font-size:24px">🛡️</span>
+    <div class="topbar-logo">SEGURIDAD PK</div>
+    <div class="topbar-role">🦺 Panel Prevencionista</div>
+  </div>
+  <div class="topbar-right">
+    <button class="notif-btn" onclick="verNotifs()">🔔<span class="notif-badge" id="notifCount">0</span></button>
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">👷</div>
+      <div class="user-name" id="userName">Cargando...</div>
+    </div>
+    <button class="logout-btn" onclick="PK.logout()">⎋ Salir</button>
+  </div>
+</div>
+
+<div class="main-wrap">
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-section">Principal</div>
+  <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
+  <div class="sidebar-section">Planificación</div>
+  <div class="nav-item" onclick="showPage('planificacion')"><span class="nav-icon">📅</span> Mi Planificación</div>
+  <div class="nav-item" onclick="showPage('gantt')"><span class="nav-icon">📉</span> Carta Gantt</div>
+  <div class="nav-item" onclick="showPage('checklist')"><span class="nav-icon">✅</span> Checklist Semanal</div>
+  <div class="sidebar-section">Registro</div>
+  <div class="nav-item" onclick="showPage('bitacora')"><span class="nav-icon">📓</span> Bitácora</div>
+  <div class="nav-item" onclick="showPage('novedades')"><span class="nav-icon">⚠️</span> Novedades</div>
+  <div class="sidebar-meta">
+    <div id="diasInfo" style="margin-bottom:6px">Cargando...</div>
+    <div style="font-size:10px;margin-top:4px;color:rgba(136,153,170,0.5)">Desarrollado por Luis Leyton-Johns</div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div class="page-title">📊 Mi Dashboard</div>
+    <div class="page-sub" id="dash-semana-label">Semana actual</div>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-title">📈 Avance Semanal</div>
+      <div id="dashProgress"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📓 Últimas Entradas Bitácora</div>
+      <div id="dashBitacora"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PLANIFICACIÓN -->
+<div class="page" id="page-planificacion">
+  <div class="page-header">
+    <div class="page-title">📅 Mi Planificación</div>
+    <div class="page-sub">Gestiona tus actividades semanales</div>
+  </div>
+
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="planSemanaLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn btn-secondary btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">➕ Agregar Actividad
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openModalActividad()">+ Nueva Actividad</button>
+    </div>
+    <div id="planList"></div>
+  </div>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end">
+    <button class="btn btn-secondary" onclick="showPage('gantt')">📉 Ver Carta Gantt</button>
+    <button class="btn btn-primary" onclick="guardarPlan()">💾 Guardar y Notificar</button>
+  </div>
+</div>
+
+<!-- GANTT -->
+<div class="page" id="page-gantt">
+  <div class="page-header">
+    <div class="page-title">📉 Carta Gantt</div>
+    <div class="page-sub">Vista de planificación semanal</div>
+  </div>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="ganttSemanaLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn btn-secondary btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Distribución de Actividades</div>
+    <div class="gantt-container" id="ganttContainer"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Leyenda</div>
+    <div id="ganttLeyenda" style="display:flex;flex-wrap:wrap;gap:10px"></div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="page" id="page-checklist">
+  <div class="page-header">
+    <div class="page-title">✅ Checklist Semanal</div>
+    <div class="page-sub">Registra el cumplimiento de tus actividades</div>
+  </div>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="checkSemanaLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn btn-secondary btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Progreso General</div>
+    <div id="checkProgress"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">📝 Actividades</div>
+    <div id="checkList"></div>
+  </div>
+</div>
+
+<!-- BITÁCORA -->
+<div class="page" id="page-bitacora">
+  <div class="page-header">
+    <div class="page-title">📓 Bitácora</div>
+    <div class="page-sub">Registro histórico de actividades</div>
+  </div>
+  <div class="card">
+    <div class="card-title">➕ Nueva Entrada
+      <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="openModalBitacora()">+ Registrar</button>
+    </div>
+    <div id="bitacoraList"></div>
+  </div>
+</div>
+
+<!-- NOVEDADES -->
+<div class="page" id="page-novedades">
+  <div class="page-header">
+    <div class="page-title">⚠️ Novedades e Incidencias</div>
+    <div class="page-sub">Registra situaciones importantes o urgentes</div>
+  </div>
+  <div class="alert alert-warning">⚡ Las novedades marcadas como ALTA o CRÍTICA enviarán notificación automática a gerencia.</div>
+  <div class="card">
+    <div class="card-title">➕ Reportar Novedad
+      <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="openModalBitacora('alta')">⚠️ Reportar</button>
+    </div>
+    <div id="novedadesList"></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+</div><!-- /main-wrap -->
+
+<!-- MODAL ACTIVIDAD -->
+<div class="modal-overlay" id="modalActividad">
+  <div class="modal">
+    <div class="modal-title">📅 Agregar Actividad</div>
+    <input type="hidden" id="editActId">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo de Actividad</label>
+        <select id="actTipo"></select>
+      </div>
+      <div class="form-group">
+        <label>Prioridad</label>
+        <select id="actPrioridad">
+          <option value="baja">🟢 Baja</option>
+          <option value="media" selected>🟡 Media</option>
+          <option value="alta">🟠 Alta</option>
+          <option value="critica">🔴 Crítica</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Título</label>
+        <input type="text" id="actTitulo" placeholder="Ej: Visita empresa constructora...">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Empresa / Lugar</label>
+        <input type="text" id="actEmpresa" placeholder="Nombre de la empresa o lugar">
+      </div>
+      <div class="form-group">
+        <label>Día</label>
+        <select id="actDia"></select>
+      </div>
+      <div class="form-group">
+        <label>Hora Inicio</label>
+        <input type="time" id="actInicio" value="09:00">
+      </div>
+      <div class="form-group">
+        <label>Hora Término</label>
+        <input type="time" id="actFin" value="11:00">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Descripción</label>
+        <textarea id="actDesc" placeholder="Detalle de la actividad..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalActividad')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarActividad()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL BITÁCORA -->
+<div class="modal-overlay" id="modalBitacora">
+  <div class="modal">
+    <div class="modal-title" id="modalBitTitle">📓 Nueva Entrada de Bitácora</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="bitTipo"></select>
+      </div>
+      <div class="form-group">
+        <label>Urgencia</label>
+        <select id="bitUrgencia">
+          <option value="baja">🟢 Baja – Informativo</option>
+          <option value="media">🟡 Media – Atención</option>
+          <option value="alta">🟠 Alta – Notifica Gerencia</option>
+          <option value="critica">🔴 Crítica – Notifica Inmediato</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Título</label>
+        <input type="text" id="bitTitulo" placeholder="Título descriptivo de la novedad...">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Empresa / Lugar</label>
+        <input type="text" id="bitEmpresa">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Descripción detallada</label>
+        <textarea id="bitDesc" placeholder="Describa detalladamente la situación, acciones tomadas, etc." style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalBitacora')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarBitacora()">💾 Registrar</button>
+    </div>
+  </div>
+</div>
+
+<script src="pk-data.js"></script>
+<script>
+let user = null;
+let prevId = null;
+let semanaActual = PK.getSemanaActual();
+let planActividades = [];
+
+function init() {
+  user = PK.requireAuth('prevencionista');
+  if (!user) return;
+  prevId = user.id;
+  document.getElementById('userName').textContent = user.nombre;
+  document.getElementById('userAvatar').textContent = PK.PREVENCIONISTAS[prevId]?.avatar || '👷';
+  const prev = PK.PREVENCIONISTAS[prevId];
+  document.getElementById('diasInfo').innerHTML = `📅 Cuota: <strong>${prev.diasSemana} días/semana</strong><br><span style="font-size:10px;color:rgba(136,153,170,0.6)">Días libres según planificación</span>`;
+
+  // Populate selects
+  const tipoSels = ['actTipo','bitTipo'];
+  tipoSels.forEach(id => {
+    const sel = document.getElementById(id);
+    PK.TIPOS_ACTIVIDAD.forEach(t => {
+      const o = document.createElement('option');
+      o.value = t.id; o.textContent = `${t.emoji} ${t.label}`;
+      sel.appendChild(o);
+    });
+  });
+
+  // Dias laborales — selección libre dentro de Lunes-Viernes
+  const diaSel = document.getElementById('actDia');
+  PK.DIAS_SEMANA.forEach(d => {
+    const o = document.createElement('option'); o.value = d; o.textContent = d; diaSel.appendChild(o);
+  });
+
+  loadSemana();
+  renderDashboard();
+  updateNotifBadge();
+}
+
+function loadSemana() {
+  const plan = PK.getPlanSemana(prevId, semanaActual);
+  planActividades = plan ? [...plan.actividades] : [];
+  const label = PK.getSemanaLabel(semanaActual);
+  ['planSemanaLabel','ganttSemanaLabel','checkSemanaLabel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = label;
+  });
+  document.getElementById('dash-semana-label').textContent = label;
+  renderPlanList();
+  renderGantt();
+  renderChecklist();
+  renderBitacora();
+  renderNovedades();
+}
+
+function cambiarSemana(dir) {
+  if (dir === 0) { semanaActual = PK.getSemanaActual(); }
+  else {
+    const [year, sw] = semanaActual.split('-S');
+    let week = parseInt(sw) + dir;
+    let y = parseInt(year);
+    if (week < 1) { y--; week = 52; }
+    if (week > 52) { y++; week = 1; }
+    semanaActual = `${y}-S${String(week).padStart(2,'0')}`;
+  }
+  loadSemana();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+  if (id === 'gantt') renderGantt();
+  if (id === 'checklist') renderChecklist();
+  if (id === 'bitacora') renderBitacora();
+  if (id === 'novedades') renderNovedades();
+  if (id === 'dashboard') renderDashboard();
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────
+function renderDashboard() {
+  const pct = PK.getPorcentajeCumplimiento(prevId, semanaActual);
+  const plan = PK.getPlanSemana(prevId, semanaActual);
+  const total = plan?.actividades?.length || 0;
+  const bit = PK.getBitacora(prevId);
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card" style="--accent-color:var(--pk-accent)">
+      <div class="stat-val">${total}</div><div class="stat-label">Actividades Semana</div>
+    </div>
+    <div class="stat-card" style="--accent-color:#27ae60">
+      <div class="stat-val">${pct}%</div><div class="stat-label">Cumplimiento</div>
+    </div>
+    <div class="stat-card" style="--accent-color:#7fb3f5">
+      <div class="stat-val">${bit.length}</div><div class="stat-label">Entradas Bitácora</div>
+    </div>
+    <div class="stat-card" style="--accent-color:#e67e22">
+      <div class="stat-val">${bit.filter(b=>b.urgencia==='alta'||b.urgencia==='critica').length}</div><div class="stat-label">Novedades Alertas</div>
+    </div>
+  `;
+
+  const fillClass = pct >= 80 ? '' : pct >= 50 ? 'warn' : 'danger';
+  document.getElementById('dashProgress').innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-label"><span>Avance semanal</span><span style="color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'};font-weight:700">${pct}%</span></div>
+      <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--pk-muted);margin-top:8px">
+      ${pct >= 80 ? '✅ ¡Excelente cumplimiento!' : pct >= 50 ? '📊 Avance regular, continúa.' : '⚠️ Bajo cumplimiento. Ponerse al día.'}
+    </div>
+  `;
+
+  const recent = bit.slice(0, 3);
+  document.getElementById('dashBitacora').innerHTML = recent.length ? recent.map(b => `
+    <div style="padding:8px 0;border-bottom:1px solid rgba(26,58,110,0.3)">
+      <div style="font-size:12px;font-weight:600">${b.titulo}</div>
+      <div style="font-size:11px;color:var(--pk-muted)">${new Date(b.fecha).toLocaleDateString('es-CL')} · <span class="urgencia-${b.urgencia}">${b.urgencia.toUpperCase()}</span></div>
+    </div>
+  `).join('') : '<div class="empty-state"><div class="icon">📓</div><p>Sin entradas en bitácora</p></div>';
+}
+
+// ─── PLAN LIST ────────────────────────────────────────────
+function renderPlanList() {
+  const cont = document.getElementById('planList');
+  if (!planActividades.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="icon">📅</div><p>Sin actividades para esta semana.<br>Agrega actividades con el botón "Nueva Actividad".</p></div>`;
+    return;
+  }
+  const dias = PK.PREVENCIONISTAS[prevId].diasLabor;
+  cont.innerHTML = dias.map(dia => {
+    const acts = planActividades.filter(a => a.dia === dia);
+    if (!acts.length) return '';
+    return `
+      <div style="margin-bottom:16px">
+        <div style="font-family:var(--font-title);font-size:14px;letter-spacing:1px;color:var(--pk-accent);margin-bottom:8px;text-transform:uppercase">📅 ${dia}</div>
+        ${acts.map(a => {
+          const tipo = PK.getTipoActividad(a.tipo);
+          return `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(10,15,30,0.5);border:1px solid rgba(26,58,110,0.3);border-radius:7px;margin-bottom:6px;border-left:3px solid ${tipo.color}">
+              <span style="font-size:18px">${tipo.emoji}</span>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:600">${a.titulo}</div>
+                <div style="font-size:11px;color:var(--pk-muted)">${a.empresa} · ${a.horaInicio}–${a.horaFin}</div>
+              </div>
+              <span class="tag tag-${a.prioridad}">${a.prioridad.toUpperCase()}</span>
+              <button class="btn btn-danger btn-sm" onclick="eliminarActividad(${a.id})">🗑</button>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+}
+
+// ─── GANTT ────────────────────────────────────────────────
+function renderGantt() {
+  const cont = document.getElementById('ganttContainer');
+  const dias = PK.PREVENCIONISTAS[prevId].diasLabor;
+  const hours = [];
+  for (let h = 7; h <= 18; h++) hours.push(`${String(h).padStart(2,'0')}:00`);
+
+  if (!planActividades.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="icon">📉</div><p>Sin planificación para esta semana</p></div>`;
+    document.getElementById('ganttLeyenda').innerHTML = '';
+    return;
+  }
+
+  let html = `<table class="gantt-table"><thead><tr>
+    <th style="min-width:200px">Actividad</th>
+    <th>Empresa</th>
+    ${dias.map(d => `<th class="day-col">${d}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  planActividades.forEach(a => {
+    const tipo = PK.getTipoActividad(a.tipo);
+    const startH = parseInt(a.horaInicio.split(':')[0]);
+    const endH   = parseInt(a.horaFin.split(':')[0]);
+    const durH   = endH - startH;
+
+    html += `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">${tipo.emoji} <span style="font-size:12px">${a.titulo}</span></div></td>
+      <td style="font-size:11px;color:var(--pk-muted)">${a.empresa}</td>
+      ${dias.map(dia => {
+        if (dia !== a.dia) return `<td class="day-col"></td>`;
+        const widthPct = Math.min(100, durH * 20);
+        return `<td class="day-col"><div class="gantt-cell">
+          <div class="gantt-bar" style="background:${tipo.color};width:${widthPct}%">${a.horaInicio}–${a.horaFin}</div>
+        </div></td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+
+  // Leyenda
+  const tiposUsados = [...new Set(planActividades.map(a => a.tipo))];
+  document.getElementById('ganttLeyenda').innerHTML = tiposUsados.map(tid => {
+    const t = PK.getTipoActividad(tid);
+    return `<div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <div style="width:16px;height:16px;border-radius:3px;background:${t.color}"></div>
+      ${t.emoji} ${t.label}
+    </div>`;
+  }).join('');
+}
+
+// ─── CHECKLIST ────────────────────────────────────────────
+function renderChecklist() {
+  const pct = PK.getPorcentajeCumplimiento(prevId, semanaActual);
+  const fillClass = pct >= 80 ? '' : pct >= 50 ? 'warn' : 'danger';
+  document.getElementById('checkProgress').innerHTML = `
+    <div class="progress-wrap">
+      <div class="progress-label"><span style="font-size:14px;font-weight:600">Cumplimiento</span>
+        <span style="font-size:22px;font-weight:700;color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'}">${pct}%</span></div>
+      <div class="progress-bar" style="height:20px"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+    </div>
+    <div style="display:flex;gap:20px;margin-top:12px;font-size:12px;color:var(--pk-muted)">
+      <span>✅ Cumplidas: ${planActividades.filter(a=>PK.getCumplimiento(prevId,semanaActual)[a.id]==='cumplido').length}</span>
+      <span>⚡ Parciales: ${planActividades.filter(a=>PK.getCumplimiento(prevId,semanaActual)[a.id]==='parcial').length}</span>
+      <span>⏳ Pendientes: ${planActividades.filter(a=>!PK.getCumplimiento(prevId,semanaActual)[a.id]).length}</span>
+    </div>
+  `;
+
+  const cont = document.getElementById('checkList');
+  if (!planActividades.length) {
+    cont.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>Sin actividades en esta semana</p></div>`;
+    return;
+  }
+
+  const cumpl = PK.getCumplimiento(prevId, semanaActual);
+  cont.innerHTML = planActividades.map(a => {
+    const tipo = PK.getTipoActividad(a.tipo);
+    const estado = cumpl[a.id] || 'pendiente';
+    const icons = { cumplido: '✅', parcial: '⚡', pendiente: '⏳', 'no-aplica': '❌' };
+    return `
+      <div class="checklist-item ${estado === 'cumplido' ? 'done' : ''}">
+        <div class="check-circle ${estado === 'cumplido' ? 'done' : estado === 'parcial' ? 'parcial' : ''}">${icons[estado]}</div>
+        <div class="check-info">
+          <div class="check-title">${tipo.emoji} ${a.titulo}</div>
+          <div class="check-meta">${a.empresa} · ${a.dia} ${a.horaInicio}–${a.horaFin} · <span class="tag tag-${a.prioridad}">${a.prioridad}</span></div>
+        </div>
+        <div class="check-actions">
+          <select class="status-sel" onchange="setEstado(${a.id}, this.value)">
+            <option value="pendiente" ${estado==='pendiente'?'selected':''}>⏳ Pendiente</option>
+            <option value="cumplido"  ${estado==='cumplido'?'selected':''}>✅ Cumplida</option>
+            <option value="parcial"   ${estado==='parcial'?'selected':''}>⚡ Parcial</option>
+            <option value="no-aplica" ${estado==='no-aplica'?'selected':''}>❌ No Aplica</option>
+          </select>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setEstado(actId, estado) {
+  PK.setCumplimiento(prevId, semanaActual, actId, estado);
+  renderChecklist();
+  renderDashboard();
+}
+
+// ─── BITÁCORA ────────────────────────────────────────────
+function renderBitacora() {
+  const bit = PK.getBitacora(prevId);
+  const cont = document.getElementById('bitacoraList');
+  if (!bit.length) { cont.innerHTML = `<div class="empty-state"><div class="icon">📓</div><p>Sin entradas en bitácora</p></div>`; return; }
+  cont.innerHTML = `<div class="bitacora-list">${bit.map(b => renderBitEntry(b)).join('')}</div>`;
+}
+
+function renderNovedades() {
+  const bit = PK.getBitacora(prevId).filter(b => b.urgencia === 'alta' || b.urgencia === 'critica');
+  const cont = document.getElementById('novedadesList');
+  if (!bit.length) { cont.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Sin novedades importantes</p></div>`; return; }
+  cont.innerHTML = `<div class="bitacora-list">${bit.map(b => renderBitEntry(b)).join('')}</div>`;
+}
+
+function renderBitEntry(b) {
+  const tipo = PK.getTipoActividad(b.tipo);
+  const urgColor = { baja: '#27ae60', media: '#e8a020', alta: '#e67e22', critica: '#e74c3c' }[b.urgencia] || '#7fb3f5';
+  return `
+    <div class="bit-card" style="--urgencia-color:${urgColor}">
+      <div class="bit-header">
+        <div class="bit-title">${tipo.emoji} ${b.titulo}</div>
+        <span class="tag tag-${b.urgencia}">${b.urgencia.toUpperCase()}</span>
+      </div>
+      <div class="bit-meta">📅 ${new Date(b.fecha).toLocaleString('es-CL')} · 🏭 ${b.empresa || '—'} · ${tipo.label}</div>
+      <div class="bit-desc">${b.descripcion}</div>
+    </div>`;
+}
+
+// ─── MODAL ACTIVIDAD ─────────────────────────────────────
+function openModalActividad() {
+  document.getElementById('editActId').value = '';
+  document.getElementById('actTitulo').value = '';
+  document.getElementById('actEmpresa').value = '';
+  document.getElementById('actDesc').value = '';
+  document.getElementById('modalActividad').classList.add('open');
+}
+function guardarActividad() {
+  const titulo = document.getElementById('actTitulo').value.trim();
+  if (!titulo) { alert('El título es requerido'); return; }
+  const id = Date.now();
+  planActividades.push({
+    id,
+    tipo: document.getElementById('actTipo').value,
+    titulo,
+    empresa: document.getElementById('actEmpresa').value.trim() || '—',
+    dia: document.getElementById('actDia').value,
+    horaInicio: document.getElementById('actInicio').value,
+    horaFin: document.getElementById('actFin').value,
+    descripcion: document.getElementById('actDesc').value.trim(),
+    prioridad: document.getElementById('actPrioridad').value,
+  });
+  closeModal('modalActividad');
+  renderPlanList();
+}
+function eliminarActividad(id) {
+  if (!confirm('¿Eliminar esta actividad?')) return;
+  planActividades = planActividades.filter(a => a.id !== id);
+  renderPlanList();
+}
+function guardarPlan() {
+  PK.savePlanificacion(prevId, semanaActual, planActividades);
+  renderGantt();
+  renderChecklist();
+  updateNotifBadge();
+  alert('✅ Planificación guardada y gerencia notificada por email.');
+}
+
+// ─── MODAL BITÁCORA ───────────────────────────────────────
+function openModalBitacora(urgencia) {
+  document.getElementById('bitTitulo').value = '';
+  document.getElementById('bitDesc').value = '';
+  document.getElementById('bitEmpresa').value = '';
+  if (urgencia) document.getElementById('bitUrgencia').value = urgencia;
+  document.getElementById('modalBitTitle').textContent = urgencia === 'alta' ? '⚠️ Reportar Novedad Importante' : '📓 Nueva Entrada de Bitácora';
+  document.getElementById('modalBitacora').classList.add('open');
+}
+function guardarBitacora() {
+  const titulo = document.getElementById('bitTitulo').value.trim();
+  const desc = document.getElementById('bitDesc').value.trim();
+  if (!titulo || !desc) { alert('Título y descripción son requeridos'); return; }
+  PK.addBitacora(prevId, {
+    tipo: document.getElementById('bitTipo').value,
+    titulo,
+    empresa: document.getElementById('bitEmpresa').value.trim(),
+    descripcion: desc,
+    urgencia: document.getElementById('bitUrgencia').value,
+    semana: semanaActual,
+  });
+  closeModal('modalBitacora');
+  renderBitacora();
+  renderNovedades();
+  renderDashboard();
+  updateNotifBadge();
+  const urg = document.getElementById('bitUrgencia').value;
+  if (urg === 'alta' || urg === 'critica') alert('🚨 Novedad registrada y gerencia notificada por email.');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+function updateNotifBadge() {
+  document.getElementById('notifCount').textContent = PK.getUnread();
+}
+function verNotifs() { showPage('novedades'); }
+
+init();
+</script>
+</body>
+</html>

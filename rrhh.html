@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel RRHH – Seguridad PK SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pk-dark: #0a0f1e; --pk-navy: #0d1b3e; --pk-blue: #1a3a6e;
+  --pk-accent: #e8a020; --pk-green: #27ae60;
+  --pk-light: #ecf0f1; --pk-muted: #8899aa;
+  --pk-card: rgba(13,27,62,0.9);
+  --font-title: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); background: var(--pk-dark); color: var(--pk-light); min-height: 100vh; display: flex; flex-direction: column; }
+
+.topbar { background: rgba(13,27,62,0.97); border-bottom: 2px solid #8e44ad; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { font-family: var(--font-title); font-size: 22px; font-weight: 700; color: var(--pk-accent); letter-spacing: 3px; }
+.topbar-role { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); border-left: 2px solid #8e44ad; padding-left: 14px; }
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.user-name { font-size: 13px; font-weight: 600; }
+.logout-btn { background: rgba(142,68,173,0.2); border: 1px solid rgba(142,68,173,0.4); color: #a855f7; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-size: 12px; }
+
+.main-wrap { display: flex; flex: 1; }
+.sidebar { width: 220px; background: rgba(10,15,30,0.95); border-right: 1px solid rgba(142,68,173,0.2); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+.sidebar-section { padding: 12px 16px 4px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); font-weight: 600; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; font-size: 13px; color: var(--pk-muted); }
+.nav-item:hover { background: rgba(142,68,173,0.1); color: var(--pk-light); }
+.nav-item.active { background: rgba(142,68,173,0.15); color: #c084fc; border-left-color: #8e44ad; font-weight: 600; }
+.nav-icon { font-size: 17px; width: 22px; text-align: center; }
+.sidebar-badge { background: rgba(142,68,173,0.3); color: #c084fc; font-size: 9px; padding: 2px 6px; border-radius: 8px; margin-left: auto; }
+.sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(142,68,173,0.2); font-size: 10px; color: rgba(136,153,170,0.5); }
+
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 24px; }
+.page-title { font-family: var(--font-title); font-size: 28px; font-weight: 700; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+.page-sub { font-size: 13px; color: var(--pk-muted); margin-top: 4px; }
+
+.readonly-banner { background: rgba(142,68,173,0.1); border: 1px solid rgba(142,68,173,0.3); border-radius: 8px; padding: 10px 16px; margin-bottom: 20px; font-size: 12px; color: #c084fc; display: flex; align-items: center; gap: 8px; }
+
+.card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.card-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; letter-spacing: 1px; color: var(--pk-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(26,58,110,0.4); padding-bottom: 10px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 18px; text-align: center; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, #8e44ad); }
+.stat-val { font-family: var(--font-title); font-size: 34px; font-weight: 700; color: var(--accent-color, #c084fc); }
+.stat-label { font-size: 11px; color: var(--pk-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+.progress-bar { background: rgba(26,58,110,0.4); border-radius: 10px; height: 10px; overflow: hidden; margin: 6px 0; }
+.progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s; }
+.pf-green { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.pf-warn { background: linear-gradient(90deg, #e8a020, #f4c842); }
+.pf-danger { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+
+.prev-row { display: flex; align-items: center; gap: 14px; padding: 16px; background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s; }
+.prev-row:hover { background: rgba(26,58,110,0.2); }
+.prev-avatar { width: 44px; height: 44px; background: var(--pk-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid #8e44ad; }
+.prev-info { flex: 1; }
+.prev-name { font-size: 14px; font-weight: 700; }
+.prev-sub { font-size: 11px; color: var(--pk-muted); margin-top: 2px; }
+.prev-pct { text-align: right; }
+.prev-pct-val { font-size: 26px; font-weight: 700; }
+
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+.tag-baja { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+.tag-media { background: rgba(232,160,32,0.15); color: #e8a020; border: 1px solid rgba(232,160,32,0.3); }
+.tag-alta { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
+.tag-critica { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+.semana-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(13,27,62,0.6); border: 1px solid rgba(26,58,110,0.4); padding: 12px 16px; border-radius: 8px; }
+.semana-nav button { background: rgba(26,58,110,0.4); border: 1px solid rgba(26,58,110,0.6); color: var(--pk-light); padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+.semana-label { flex: 1; text-align: center; font-family: var(--font-title); font-size: 15px; letter-spacing: 1px; color: var(--pk-accent); }
+.btn-sm { padding: 6px 12px; border: 1px solid rgba(26,58,110,0.6); background: rgba(26,58,110,0.4); color: var(--pk-light); border-radius: 5px; cursor: pointer; font-size: 12px; }
+
+.bit-card { background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 7px; padding: 12px; margin-bottom: 8px; border-left: 4px solid var(--urg, var(--pk-blue)); }
+.activity-row { display: flex; align-items: center; gap: 10px; padding: 9px; background: rgba(10,15,30,0.4); border-radius: 6px; margin-bottom: 6px; font-size: 12px; }
+.empty-state { text-align: center; padding: 30px; color: var(--pk-muted); }
+.empty-state .icon { font-size: 38px; margin-bottom: 10px; }
+
+.asist-table { width: 100%; border-collapse: collapse; }
+.asist-table th { background: rgba(26,58,110,0.4); padding: 8px 12px; font-size: 11px; text-transform: uppercase; color: var(--pk-muted); text-align: left; border: 1px solid rgba(26,58,110,0.3); }
+.asist-table td { padding: 8px 12px; border: 1px solid rgba(26,58,110,0.2); font-size: 12px; }
+.asist-table tr:hover td { background: rgba(26,58,110,0.1); }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <span style="font-size:24px">🛡️</span>
+    <div class="topbar-logo">SEGURIDAD PK</div>
+    <div class="topbar-role">👥 Recursos Humanos</div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-name" id="userName">Cargando...</div>
+    <button class="logout-btn" onclick="PK.logout()">⎋ Salir</button>
+  </div>
+</div>
+
+<div class="main-wrap">
+<div class="sidebar">
+  <div class="sidebar-section">Visión General</div>
+  <div class="nav-item active" onclick="showPage('resumen')"><span class="nav-icon">📊</span> Resumen General</div>
+  <div class="nav-item" onclick="showPage('asistencia')"><span class="nav-icon">📅</span> Asistencia / Jornada</div>
+  <div class="sidebar-section">Prevencionistas</div>
+  <div class="nav-item" onclick="showPage('prev1')"><span class="nav-icon">👷</span> Juan Carlos Jaque</div>
+  <div class="nav-item" onclick="showPage('prev2')"><span class="nav-icon">👷‍♀️</span> Delfina Pacheco</div>
+  <div class="sidebar-section">Reportes</div>
+  <div class="nav-item" onclick="showPage('actividades')"><span class="nav-icon">📋</span> Actividades Globales</div>
+  <div class="sidebar-footer">Solo lectura · Desarrollado por Luis Leyton-Johns</div>
+</div>
+
+<div class="content">
+
+<!-- RESUMEN -->
+<div class="page active" id="page-resumen">
+  <div class="page-header">
+    <div class="page-title" style="color:var(--pk-light)">📊 Resumen General RRHH</div>
+    <div class="page-sub">Vista de cumplimiento y actividades de los prevencionistas</div>
+  </div>
+  <div class="readonly-banner">🔒 Modo solo lectura · Perfil Recursos Humanos · Para acciones administrativas contacte a Gerencia</div>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="resumenSemLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+  <div class="stats-grid" id="rrhhStats"></div>
+  <div class="card">
+    <div class="card-title">👷 Estado por Prevencionista</div>
+    <div id="prevList"></div>
+  </div>
+</div>
+
+<!-- ASISTENCIA -->
+<div class="page" id="page-asistencia">
+  <div class="page-header">
+    <div class="page-title" style="color:var(--pk-light)">📅 Asistencia y Jornada</div>
+    <div class="page-sub">Información de jornada laboral de los prevencionistas</div>
+  </div>
+  <div class="readonly-banner">🔒 Solo lectura</div>
+  <div class="card">
+    <div class="card-title">📋 Información de Jornada</div>
+    <table class="asist-table">
+      <thead><tr><th>Prevencionista</th><th>Días/Semana</th><th>Días Laborales</th><th>Tipo Jornada</th></tr></thead>
+      <tbody id="asistBody"></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">📊 Actividad Semanal – <span id="asistSemLabel"></span></div>
+    <div class="semana-nav" style="margin-bottom:12px">
+      <button onclick="cambiarSemana(-1)">◀</button>
+      <div class="semana-label" id="asistSemLabel2">—</div>
+      <button onclick="cambiarSemana(1)">▶</button>
+    </div>
+    <div id="asistActiv"></div>
+  </div>
+</div>
+
+<!-- PREV1 RRHH -->
+<div class="page" id="page-prev1">
+  <div class="page-header">
+    <div class="page-title" style="color:var(--pk-light)">👷 Juan Carlos Jaque</div>
+  </div>
+  <div class="readonly-banner">🔒 Vista RRHH – Solo información de actividades y cumplimiento</div>
+  <div id="rrhhPrev1"></div>
+</div>
+
+<!-- PREV2 RRHH -->
+<div class="page" id="page-prev2">
+  <div class="page-header">
+    <div class="page-title" style="color:var(--pk-light)">👷‍♀️ Delfina Pacheco</div>
+  </div>
+  <div class="readonly-banner">🔒 Vista RRHH – Solo información de actividades y cumplimiento</div>
+  <div id="rrhhPrev2"></div>
+</div>
+
+<!-- ACTIVIDADES GLOBALES -->
+<div class="page" id="page-actividades">
+  <div class="page-header">
+    <div class="page-title" style="color:var(--pk-light)">📋 Actividades Globales</div>
+    <div class="page-sub">Todas las actividades planificadas de ambos prevencionistas</div>
+  </div>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="actGlobSemLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+  <div id="actividadesGlob"></div>
+</div>
+
+</div>
+</div>
+
+<script src="pk-data.js"></script>
+<script>
+let semana = PK.getSemanaActual();
+const PREVS = ['prev1','prev2'];
+
+function init() {
+  const user = PK.requireAuth('rrhh');
+  if (!user) return;
+  document.getElementById('userName').textContent = `👥 ${user.nombre}`;
+  cargarTodo();
+}
+
+function cargarTodo() {
+  const label = PK.getSemanaLabel(semana);
+  ['resumenSemLabel','asistSemLabel','asistSemLabel2','actGlobSemLabel'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.textContent = label;
+  });
+  renderResumen();
+  renderAsistencia();
+  renderPrevRRHH('prev1');
+  renderPrevRRHH('prev2');
+  renderActividadesGlob();
+}
+
+function cambiarSemana(dir) {
+  if (dir === 0) { semana = PK.getSemanaActual(); }
+  else {
+    const [yr, sw] = semana.split('-S');
+    let w = parseInt(sw) + dir, y = parseInt(yr);
+    if (w < 1) { y--; w += 52; } if (w > 52) { y++; w = 1; }
+    semana = `${y}-S${String(w).padStart(2,'0')}`;
+  }
+  cargarTodo();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+}
+
+function renderResumen() {
+  let totalActs = 0, totalCumpl = 0;
+  PREVS.forEach(pid => {
+    const plan = PK.getPlanSemana(pid, semana);
+    totalActs += plan?.actividades?.length || 0;
+    totalCumpl += PK.getPorcentajeCumplimiento(pid, semana);
+  });
+  const prom = Math.round(totalCumpl / PREVS.length);
+
+  document.getElementById('rrhhStats').innerHTML = `
+    <div class="stat-card" style="--accent-color:#8e44ad"><div class="stat-val">2</div><div class="stat-label">Prevencionistas</div></div>
+    <div class="stat-card" style="--accent-color:var(--pk-accent)"><div class="stat-val">${totalActs}</div><div class="stat-label">Actividades Sem.</div></div>
+    <div class="stat-card" style="--accent-color:#27ae60"><div class="stat-val">${prom}%</div><div class="stat-label">Cumplimiento Prom.</div></div>
+    <div class="stat-card" style="--accent-color:#7fb3f5"><div class="stat-val">7</div><div class="stat-label">Días Laborales Tot.</div></div>
+  `;
+
+  document.getElementById('prevList').innerHTML = PREVS.map(pid => {
+    const p = PK.PREVENCIONISTAS[pid];
+    const pct = PK.getPorcentajeCumplimiento(pid, semana);
+    const plan = PK.getPlanSemana(pid, semana);
+    const acts = plan?.actividades?.length || 0;
+    const pctClass = pct >= 80 ? 'pf-green' : pct >= 50 ? 'pf-warn' : 'pf-danger';
+    return `
+      <div class="prev-row" onclick="showPage('${pid}')">
+        <div class="prev-avatar">${p.avatar}</div>
+        <div class="prev-info">
+          <div class="prev-name">${p.nombre}</div>
+          <div class="prev-sub">📅 ${p.diasSemana} días/sem · ${p.diasLabor.join(', ')}</div>
+          <div class="progress-bar" style="margin-top:6px"><div class="progress-fill ${pctClass}" style="width:${pct}%"></div></div>
+          <div style="font-size:10px;color:var(--pk-muted);margin-top:4px">${acts} actividades planificadas</div>
+        </div>
+        <div class="prev-pct">
+          <div class="prev-pct-val" style="color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'}">${pct}%</div>
+          <div style="font-size:10px;color:var(--pk-muted)">cumplimiento</div>
+          <div style="font-size:20px;margin-top:6px">›</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderAsistencia() {
+  document.getElementById('asistBody').innerHTML = PREVS.map(pid => {
+    const p = PK.PREVENCIONISTAS[pid];
+    return `<tr>
+      <td>${p.avatar} <strong>${p.nombre}</strong></td>
+      <td>${p.diasSemana} días</td>
+      <td>${p.diasLabor.join(' · ')}</td>
+      <td>${p.diasSemana === 4 ? 'Jornada 4 días' : 'Jornada 3 días'}</td>
+    </tr>`;
+  }).join('');
+
+  const allActs = PREVS.flatMap(pid => {
+    const plan = PK.getPlanSemana(pid, semana);
+    return (plan?.actividades || []).map(a => ({ ...a, prevId: pid, prevNombre: PK.PREVENCIONISTAS[pid].nombre }));
+  });
+
+  document.getElementById('asistActiv').innerHTML = allActs.length ? allActs.map(a => {
+    const tipo = PK.getTipoActividad(a.tipo);
+    return `<div class="activity-row">
+      <span>${tipo.emoji}</span>
+      <div style="flex:1">
+        <div style="font-weight:600">${a.titulo}</div>
+        <div style="color:var(--pk-muted);font-size:11px">${a.prevNombre} · ${a.empresa}</div>
+      </div>
+      <div style="text-align:right">
+        <div>${a.dia}</div>
+        <div style="color:var(--pk-muted)">${a.horaInicio}–${a.horaFin}</div>
+      </div>
+      <span class="tag tag-${a.prioridad}">${a.prioridad}</span>
+    </div>`;
+  }).join('') : `<div class="empty-state"><div class="icon">📅</div><p>Sin actividades para esta semana</p></div>`;
+}
+
+function renderPrevRRHH(pid) {
+  const p = PK.PREVENCIONISTAS[pid];
+  const plan = PK.getPlanSemana(pid, semana);
+  const acts = plan?.actividades || [];
+  const pct = PK.getPorcentajeCumplimiento(pid, semana);
+  const cumpl = PK.getCumplimiento(pid, semana);
+  const pctClass = pct >= 80 ? 'pf-green' : pct >= 50 ? 'pf-warn' : 'pf-danger';
+
+  const cont = document.getElementById('rrhhPrev'+pid.charAt(0).toUpperCase()+pid.slice(1));
+  if (!cont) return;
+
+  const icons = { cumplido: '✅', parcial: '⚡', pendiente: '⏳', 'no-aplica': '❌' };
+
+  cont.innerHTML = `
+    <div class="semana-nav">
+      <button onclick="cambiarSemana(-1)">◀</button>
+      <div class="semana-label">${PK.getSemanaLabel(semana)}</div>
+      <button onclick="cambiarSemana(1)">▶</button>
+      <button class="btn-sm" onclick="cambiarSemana(0)">Hoy</button>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card" style="--accent-color:#8e44ad">
+        <div class="stat-val">${p.diasSemana}</div><div class="stat-label">Días/Semana</div>
+      </div>
+      <div class="stat-card" style="--accent-color:var(--pk-accent)">
+        <div class="stat-val">${acts.length}</div><div class="stat-label">Actividades</div>
+      </div>
+      <div class="stat-card" style="--accent-color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'}">
+        <div class="stat-val">${pct}%</div><div class="stat-label">Cumplimiento</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Actividades de la Semana</div>
+      <div class="progress-bar" style="margin-bottom:12px"><div class="progress-fill ${pctClass}" style="width:${pct}%"></div></div>
+      ${acts.length ? acts.map(a => {
+        const tipo = PK.getTipoActividad(a.tipo);
+        const estado = cumpl[a.id] || 'pendiente';
+        return `<div class="activity-row" style="border-left:3px solid ${tipo.color}">
+          <span style="font-size:18px">${icons[estado]}</span>
+          <div style="flex:1">
+            <div style="font-weight:600">${tipo.emoji} ${a.titulo}</div>
+            <div style="font-size:11px;color:var(--pk-muted)">${a.empresa} · ${a.dia} ${a.horaInicio}–${a.horaFin}</div>
+          </div>
+          <span class="tag tag-${a.prioridad}">${a.prioridad}</span>
+        </div>`;
+      }).join('') : `<div class="empty-state"><div class="icon">📅</div><p>Sin actividades</p></div>`}
+    </div>`;
+}
+
+function renderActividadesGlob() {
+  const cont = document.getElementById('actividadesGlob');
+  let html = '';
+  PREVS.forEach(pid => {
+    const p = PK.PREVENCIONISTAS[pid];
+    const plan = PK.getPlanSemana(pid, semana);
+    const acts = plan?.actividades || [];
+    html += `<div class="card">
+      <div class="card-title">${p.avatar} ${p.nombre} – ${acts.length} actividades</div>
+      ${acts.length ? acts.map(a => {
+        const tipo = PK.getTipoActividad(a.tipo);
+        return `<div class="activity-row" style="border-left:3px solid ${tipo.color}">
+          <span>${tipo.emoji}</span>
+          <div style="flex:1">
+            <div style="font-weight:600">${a.titulo}</div>
+            <div style="font-size:11px;color:var(--pk-muted)">${a.empresa} · ${a.dia} ${a.horaInicio}–${a.horaFin}</div>
+          </div>
+          <span class="tag tag-${a.prioridad}">${a.prioridad}</span>
+        </div>`;
+      }).join('') : `<div class="empty-state"><div class="icon">📅</div><p>Sin actividades planificadas</p></div>`}
+    </div>`;
+  });
+  cont.innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>

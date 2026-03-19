@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguridad PK SpA – Sistema de Control Prevencionistas</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pk-dark: #0a0f1e;
+    --pk-navy: #0d1b3e;
+    --pk-blue: #1a3a6e;
+    --pk-accent: #e8a020;
+    --pk-accent2: #f4c842;
+    --pk-red: #c0392b;
+    --pk-green: #27ae60;
+    --pk-light: #ecf0f1;
+    --pk-muted: #8899aa;
+    --pk-card: rgba(13,27,62,0.85);
+    --font-title: 'Rajdhani', sans-serif;
+    --font-body: 'Exo 2', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--pk-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+  /* Animated BG */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(26,58,110,0.25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(26,58,110,0.25) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridMove 20s linear infinite;
+  }
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
+  .bg-glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,160,32,0.08) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation: glowMove 8s ease-in-out infinite alternate;
+  }
+  .bg-glow2 {
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,58,110,0.2) 0%, transparent 70%);
+    bottom: -50px; right: -50px;
+    animation: glowMove2 10s ease-in-out infinite alternate;
+  }
+  @keyframes glowMove { 0% { transform: translate(0,0); } 100% { transform: translate(80px,60px); } }
+  @keyframes glowMove2 { 0% { transform: translate(0,0); } 100% { transform: translate(-60px,-40px); } }
+
+  /* Shield decoration */
+  .shield-bg {
+    position: fixed;
+    right: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 320px;
+    opacity: 0.04;
+    color: var(--pk-accent);
+    user-select: none;
+  }
+
+  .login-wrap {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+  }
+
+  .logo-area {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .logo-shield {
+    font-size: 64px;
+    display: block;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 0 16px rgba(232,160,32,0.5));
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { filter: drop-shadow(0 0 12px rgba(232,160,32,0.4)); }
+    50% { filter: drop-shadow(0 0 28px rgba(232,160,32,0.8)); }
+  }
+  .logo-title {
+    font-family: var(--font-title);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--pk-accent);
+    text-shadow: 0 0 20px rgba(232,160,32,0.4);
+  }
+  .logo-sub {
+    font-size: 12px;
+    color: var(--pk-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: var(--pk-card);
+    border: 1px solid rgba(26,58,110,0.6);
+    border-top: 2px solid var(--pk-accent);
+    border-radius: 12px;
+    padding: 36px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(232,160,32,0.1);
+  }
+
+  .card-title {
+    font-family: var(--font-title);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--pk-light);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px; height: 22px;
+    background: var(--pk-accent);
+    border-radius: 2px;
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+  label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pk-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .input-wrap {
+    position: relative;
+  }
+  .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    opacity: 0.5;
+  }
+  input[type="text"], input[type="password"], select {
+    width: 100%;
+    background: rgba(10,15,30,0.7);
+    border: 1px solid rgba(26,58,110,0.8);
+    color: var(--pk-light);
+    padding: 12px 14px 12px 42px;
+    border-radius: 8px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    transition: all 0.25s;
+    outline: none;
+    appearance: none;
+  }
+  input:focus, select:focus {
+    border-color: var(--pk-accent);
+    box-shadow: 0 0 0 3px rgba(232,160,32,0.12);
+    background: rgba(10,15,30,0.9);
+  }
+  select option { background: var(--pk-navy); color: var(--pk-light); }
+
+  .btn-login {
+    width: 100%;
+    background: linear-gradient(135deg, var(--pk-accent), var(--pk-accent2));
+    color: var(--pk-dark);
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-family: var(--font-title);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.25s;
+    text-transform: uppercase;
+  }
+  .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(232,160,32,0.4);
+  }
+  .btn-login:active { transform: translateY(0); }
+
+  .demo-users {
+    margin-top: 24px;
+    border-top: 1px solid rgba(26,58,110,0.5);
+    padding-top: 18px;
+  }
+  .demo-title {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pk-muted);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .demo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .demo-btn {
+    background: rgba(26,58,110,0.3);
+    border: 1px solid rgba(26,58,110,0.5);
+    color: var(--pk-light);
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 11px;
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .demo-btn:hover {
+    background: rgba(26,58,110,0.6);
+    border-color: var(--pk-accent);
+    color: var(--pk-accent);
+  }
+  .demo-btn span { display: block; font-size: 9px; color: var(--pk-muted); margin-top: 2px; }
+
+  .error-msg {
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: #e74c3c;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .footer-credit {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 10px;
+    color: rgba(136,153,170,0.5);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+<div class="shield-bg">🛡</div>
+
+<div class="login-wrap">
+  <div class="logo-area">
+    <span class="logo-shield">🛡️</span>
+    <div class="logo-title">SEGURIDAD PK</div>
+    <div class="logo-sub">Sistema de Control de Prevencionistas</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Acceso al Sistema</div>
+
+    <div class="error-msg" id="errMsg">⚠ Usuario o contraseña incorrectos.</div>
+
+    <div class="form-group">
+      <label>Perfil de acceso</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <select id="perfil">
+          <option value="">Seleccione su perfil...</option>
+          <option value="prevencionista">Prevencionista</option>
+          <option value="gerencia">Gerencia</option>
+          <option value="rrhh">Recursos Humanos</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Usuario</label>
+      <div class="input-wrap">
+        <span class="input-icon">📋</span>
+        <input type="text" id="usuario" placeholder="Ingrese su usuario">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Contraseña</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">INGRESAR</button>
+
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:rgba(136,153,170,0.5);letter-spacing:1px">
+      ¿Problemas para ingresar? Contacte al administrador del sistema.
+    </div>
+  </div>
+  <div class="footer-credit">Desarrollado por Luis Leyton-Johns · Seguridad PK SpA © 2025</div>
+</div>
+
+<script>
+const USERS = {
+  // ── PREVENCIONISTAS ──────────────────────────────────────────
+  'juancarlos.jaque': {
+    pass: 'PK@JuanCarlos2025', perfil: 'prevencionista',
+    nombre: 'Juan Carlos Jaque', email: 'prevencionpkseguridad1@gmail.com',
+    diasSemana: 4, id: 'prev1'
+  },
+  'delfina.pacheco': {
+    pass: 'PK@Delfina2025', perfil: 'prevencionista',
+    nombre: 'Delfina Pacheco', email: 'prevencionpk2@gmail.com',
+    diasSemana: 3, id: 'prev2'
+  },
+  // ── GERENCIA ─────────────────────────────────────────────────
+  'rodolfo.pacheco': {
+    pass: 'PK@Rodolfo2025', perfil: 'gerencia',
+    nombre: 'Rodolfo Pacheco', email: 'rpkutz@gmail.com',
+    cargo: 'Gerente General'
+  },
+  'yalaska.farias': {
+    pass: 'PK@Yalaska2025', perfil: 'gerencia',
+    nombre: 'Yalaska Farías', email: 'yalaska703@gmail.com',
+    cargo: 'Gerente de Operaciones'
+  },
+  'luis.leyton': {
+    pass: 'PK@Luis2025', perfil: 'gerencia',
+    nombre: 'Luis Leyton', email: 'leyton.johns@gmail.com',
+    cargo: 'Gerente de Organización y Método'
+  },
+  // ── RRHH ─────────────────────────────────────────────────────
+  'rrhh.admin': {
+    pass: 'PK@RRHH2025', perfil: 'rrhh',
+    nombre: 'Administrador RRHH', email: '',
+    cargo: 'Recursos Humanos'
+  },
+};
+
+function doLogin() {
+  const perfil   = document.getElementById('perfil').value;
+  const usuario  = document.getElementById('usuario').value.trim();
+  const password = document.getElementById('password').value;
+  const err      = document.getElementById('errMsg');
+
+  const u = USERS[usuario];
+  if (!u || u.pass !== password || u.perfil !== perfil) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  localStorage.setItem('pk_user', JSON.stringify(u));
+  localStorage.setItem('pk_username', usuario);
+
+  if (perfil === 'prevencionista') window.location.href = 'prevencionista.html';
+  else if (perfil === 'gerencia')   window.location.href = 'gerencia.html';
+  else if (perfil === 'rrhh')       window.location.href = 'rrhh.html';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

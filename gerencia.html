@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Gerencia – Seguridad PK SpA</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pk-dark: #0a0f1e; --pk-navy: #0d1b3e; --pk-blue: #1a3a6e;
+  --pk-accent: #e8a020; --pk-accent2: #f4c842;
+  --pk-red: #c0392b; --pk-green: #27ae60;
+  --pk-light: #ecf0f1; --pk-muted: #8899aa;
+  --pk-card: rgba(13,27,62,0.9);
+  --font-title: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-body); background: var(--pk-dark); color: var(--pk-light); min-height: 100vh; display: flex; flex-direction: column; }
+
+.topbar { background: rgba(13,27,62,0.97); border-bottom: 2px solid var(--pk-accent); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { font-family: var(--font-title); font-size: 22px; font-weight: 700; color: var(--pk-accent); letter-spacing: 3px; }
+.topbar-role { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); border-left: 2px solid var(--pk-blue); padding-left: 14px; }
+.topbar-left { display: flex; align-items: center; gap: 14px; }
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+.notif-btn { position: relative; background: none; border: none; color: var(--pk-muted); font-size: 20px; cursor: pointer; }
+.notif-badge { position: absolute; top: 0; right: 0; background: var(--pk-red); color: white; font-size: 9px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.user-name { font-size: 13px; font-weight: 600; }
+.logout-btn { background: rgba(192,57,43,0.2); border: 1px solid rgba(192,57,43,0.4); color: #e74c3c; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: var(--font-body); font-size: 12px; }
+.logout-btn:hover { background: rgba(192,57,43,0.35); }
+
+.main-wrap { display: flex; flex: 1; }
+.sidebar { width: 240px; background: rgba(10,15,30,0.95); border-right: 1px solid rgba(26,58,110,0.5); padding: 20px 0; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+.sidebar-section { padding: 12px 16px 4px; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--pk-muted); font-weight: 600; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; font-size: 13px; color: var(--pk-muted); }
+.nav-item:hover { background: rgba(26,58,110,0.3); color: var(--pk-light); }
+.nav-item.active { background: rgba(26,58,110,0.4); color: var(--pk-accent); border-left-color: var(--pk-accent); font-weight: 600; }
+.nav-icon { font-size: 17px; width: 22px; text-align: center; }
+.sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid rgba(26,58,110,0.4); font-size: 10px; color: rgba(136,153,170,0.5); }
+
+.content { flex: 1; padding: 24px; overflow-y: auto; }
+.page { display: none; }
+.page.active { display: block; }
+.page-header { margin-bottom: 24px; }
+.page-title { font-family: var(--font-title); font-size: 28px; font-weight: 700; letter-spacing: 2px; color: var(--pk-light); display: flex; align-items: center; gap: 10px; }
+.page-sub { font-size: 13px; color: var(--pk-muted); margin-top: 4px; }
+
+.card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.card-title { font-family: var(--font-title); font-size: 16px; font-weight: 600; letter-spacing: 1px; color: var(--pk-accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(26,58,110,0.4); padding-bottom: 10px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card { background: var(--pk-card); border: 1px solid rgba(26,58,110,0.5); border-radius: 10px; padding: 18px; text-align: center; position: relative; overflow: hidden; }
+.stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, var(--pk-accent)); }
+.stat-val { font-family: var(--font-title); font-size: 36px; font-weight: 700; color: var(--accent-color, var(--pk-accent)); }
+.stat-label { font-size: 11px; color: var(--pk-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+.progress-wrap { margin: 8px 0; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--pk-muted); margin-bottom: 5px; }
+.progress-bar { background: rgba(26,58,110,0.4); border-radius: 10px; height: 10px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; background: linear-gradient(90deg, var(--pk-green), #2ecc71); }
+.progress-fill.warn { background: linear-gradient(90deg, var(--pk-accent), var(--pk-accent2)); }
+.progress-fill.danger { background: linear-gradient(90deg, #c0392b, #e74c3c); }
+
+/* PREV CARD */
+.prev-card { background: rgba(10,15,30,0.6); border: 1px solid rgba(26,58,110,0.4); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.prev-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.prev-avatar { width: 48px; height: 48px; background: var(--pk-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid var(--pk-accent); }
+.prev-name { font-family: var(--font-title); font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+.prev-dias { font-size: 11px; color: var(--pk-muted); }
+
+.tab-strip { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid rgba(26,58,110,0.3); padding-bottom: 0; }
+.tab-btn { background: none; border: none; color: var(--pk-muted); padding: 8px 16px; cursor: pointer; font-family: var(--font-body); font-size: 12px; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
+.tab-btn.active { color: var(--pk-accent); border-bottom-color: var(--pk-accent); }
+
+.bit-card { background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 7px; padding: 12px; margin-bottom: 8px; border-left: 4px solid var(--urgencia-color, var(--pk-blue)); }
+.bit-title { font-weight: 600; font-size: 13px; }
+.bit-meta { font-size: 11px; color: var(--pk-muted); margin: 4px 0; }
+.bit-desc { font-size: 12px; color: rgba(236,240,241,0.8); }
+
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; letter-spacing: 1px; font-weight: 600; }
+.tag-baja { background: rgba(39,174,96,0.15); color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
+.tag-media { background: rgba(232,160,32,0.15); color: var(--pk-accent); border: 1px solid rgba(232,160,32,0.3); }
+.tag-alta { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
+.tag-critica { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+
+.gantt-table { width: 100%; border-collapse: collapse; }
+.gantt-table th { background: rgba(26,58,110,0.5); padding: 8px 10px; font-size: 11px; text-transform: uppercase; color: var(--pk-muted); text-align: left; border: 1px solid rgba(26,58,110,0.3); white-space: nowrap; }
+.gantt-table td { padding: 6px 10px; border: 1px solid rgba(26,58,110,0.2); font-size: 12px; vertical-align: middle; }
+.gantt-table tr:hover td { background: rgba(26,58,110,0.1); }
+.gantt-bar { height: 20px; border-radius: 4px; display: flex; align-items: center; padding: 0 8px; font-size: 11px; font-weight: 600; color: white; white-space: nowrap; overflow: hidden; }
+.day-col { min-width: 90px; }
+
+.semana-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(13,27,62,0.6); border: 1px solid rgba(26,58,110,0.4); padding: 12px 16px; border-radius: 8px; }
+.semana-nav button { background: rgba(26,58,110,0.4); border: 1px solid rgba(26,58,110,0.6); color: var(--pk-light); padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 16px; }
+.semana-label { flex: 1; text-align: center; font-family: var(--font-title); font-size: 16px; letter-spacing: 1px; color: var(--pk-accent); }
+.btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-family: var(--font-body); font-size: 12px; font-weight: 600; transition: all 0.2s; }
+.btn-secondary { background: rgba(26,58,110,0.4); border: 1px solid rgba(26,58,110,0.7); color: var(--pk-light); }
+
+.notif-list-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 7px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.notif-list-item:hover { background: rgba(26,58,110,0.2); }
+.notif-list-item.unread { border-left: 3px solid var(--pk-accent); }
+.notif-icon { font-size: 22px; }
+.notif-body { flex: 1; }
+.notif-msg { font-size: 13px; }
+.notif-date { font-size: 11px; color: var(--pk-muted); margin-top: 3px; }
+
+.email-item { background: rgba(10,15,30,0.5); border: 1px solid rgba(26,58,110,0.3); border-radius: 7px; padding: 12px; margin-bottom: 8px; }
+.email-asunto { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+.email-dest { font-size: 11px; color: var(--pk-muted); }
+.email-cuerpo { font-size: 12px; color: rgba(236,240,241,0.8); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(26,58,110,0.3); }
+
+.check-summ { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; font-size: 11px; color: var(--pk-muted); }
+.empty-state { text-align: center; padding: 30px; color: var(--pk-muted); }
+.empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <span style="font-size:24px">🛡️</span>
+    <div class="topbar-logo">SEGURIDAD PK</div>
+    <div class="topbar-role">💼 Panel de Gerencia</div>
+  </div>
+  <div class="topbar-right">
+    <button class="notif-btn" onclick="showPage('notificaciones')">🔔<span class="notif-badge" id="notifCount">0</span></button>
+    <div class="user-name" id="userName">Cargando...</div>
+    <button class="logout-btn" onclick="PK.logout()">⎋ Salir</button>
+  </div>
+</div>
+
+<div class="main-wrap">
+<div class="sidebar">
+  <div class="sidebar-section">Visión General</div>
+  <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span> Dashboard General</div>
+  <div class="nav-item" onclick="showPage('comparativo')"><span class="nav-icon">📈</span> Comparativo</div>
+  <div class="sidebar-section">Prevencionistas</div>
+  <div class="nav-item" onclick="showPage('prev1')"><span class="nav-icon">👷</span> Juan Carlos Jaque</div>
+  <div class="nav-item" onclick="showPage('prev2')"><span class="nav-icon">👷‍♀️</span> Delfina Pacheco</div>
+  <div class="sidebar-section">Alertas</div>
+  <div class="nav-item" onclick="showPage('notificaciones')"><span class="nav-icon">🔔</span> Notificaciones</div>
+  <div class="nav-item" onclick="showPage('emails')"><span class="nav-icon">📧</span> Emails Enviados</div>
+  <div class="nav-item" onclick="showPage('novedades-ger')"><span class="nav-icon">⚠️</span> Novedades Críticas</div>
+  <div class="sidebar-footer">Desarrollado por Luis Leyton-Johns</div>
+</div>
+
+<div class="content">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div class="page-title">📊 Dashboard General</div>
+    <div class="page-sub" id="dashSemanaLabel">Semana actual</div>
+  </div>
+  <div class="semana-nav">
+    <button onclick="cambiarSemana(-1)">◀</button>
+    <div class="semana-label" id="dashSemLabel">—</div>
+    <button onclick="cambiarSemana(1)">▶</button>
+    <button class="btn btn-secondary" onclick="cambiarSemana(0)">Hoy</button>
+  </div>
+  <div class="stats-grid" id="dashStats"></div>
+  <div class="card" id="coberturaCard" style="margin-bottom:20px"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-title">📊 Cumplimiento por Prevencionista</div>
+      <div id="dashCumpl"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Últimas Novedades Críticas</div>
+      <div id="dashNov"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARATIVO -->
+<div class="page" id="page-comparativo">
+  <div class="page-header">
+    <div class="page-title">📈 Comparativo General</div>
+    <div class="page-sub">Semana actual vs semanas anteriores</div>
+  </div>
+  <div id="comparativoContent"></div>
+</div>
+
+<!-- PREV1 -->
+<div class="page" id="page-prev1">
+  <div class="page-header">
+    <div class="page-title">👷 Juan Carlos Jaque – Detalle</div>
+  </div>
+  <div id="detallePrev1"></div>
+</div>
+
+<!-- PREV2 -->
+<div class="page" id="page-prev2">
+  <div class="page-header">
+    <div class="page-title">👷‍♀️ Delfina Pacheco – Detalle</div>
+  </div>
+  <div id="detallePrev2"></div>
+</div>
+
+<!-- NOTIFICACIONES -->
+<div class="page" id="page-notificaciones">
+  <div class="page-header">
+    <div class="page-title">🔔 Centro de Notificaciones</div>
+    <div class="page-sub">Todas las alertas del sistema</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Alertas Recientes</div>
+    <div id="notifList"></div>
+  </div>
+</div>
+
+<!-- EMAILS -->
+<div class="page" id="page-emails">
+  <div class="page-header">
+    <div class="page-title">📧 Emails Enviados</div>
+    <div class="page-sub">Registro de notificaciones enviadas a gerencia</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Historial de Emails</div>
+    <div id="emailList"></div>
+  </div>
+</div>
+
+<!-- NOVEDADES GERENCIA -->
+<div class="page" id="page-novedades-ger">
+  <div class="page-header">
+    <div class="page-title">⚠️ Novedades Críticas</div>
+    <div class="page-sub">Eventos de alta urgencia reportados por prevencionistas</div>
+  </div>
+  <div id="novedadesGerContent"></div>
+</div>
+
+</div>
+</div>
+
+<script src="pk-data.js"></script>
+<script>
+let semana = PK.getSemanaActual();
+let user = null;
+const PREVS = Object.keys(PK.PREVENCIONISTAS);
+
+function init() {
+  user = PK.requireAuth('gerencia');
+  if (!user) return;
+  document.getElementById('userName').textContent = `💼 ${user.nombre}`;
+  cargarTodo();
+}
+
+function cargarTodo() {
+  const label = PK.getSemanaLabel(semana);
+  ['dashSemLabel'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = label; });
+  renderDashboard();
+  renderDetallePrev('prev1');
+  renderDetallePrev('prev2');
+  renderNotifs();
+  renderEmails();
+  renderNovedadesGer();
+  renderComparativo();
+  updateBadge();
+}
+
+function cambiarSemana(dir) {
+  if (dir === 0) { semana = PK.getSemanaActual(); }
+  else {
+    const [yr, sw] = semana.split('-S');
+    let w = parseInt(sw) + dir, y = parseInt(yr);
+    if (w < 1) { y--; w = 52; } if (w > 52) { y++; w = 1; }
+    semana = `${y}-S${String(w).padStart(2,'0')}`;
+  }
+  cargarTodo();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+}
+
+function renderDashboard() {
+  let totalActs = 0, totalCumpl = 0, totalBit = 0, totalNov = 0;
+  PREVS.forEach(pid => {
+    const plan = PK.getPlanSemana(pid, semana);
+    totalActs += plan?.actividades?.length || 0;
+    totalBit += PK.getBitacora(pid).length;
+    totalNov += PK.getBitacora(pid).filter(b => b.urgencia === 'alta' || b.urgencia === 'critica').length;
+  });
+  const pct1 = PK.getPorcentajeCumplimiento('prev1', semana);
+  const pct2 = PK.getPorcentajeCumplimiento('prev2', semana);
+  totalCumpl = Math.round((pct1 + pct2) / 2);
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat-card" style="--accent-color:var(--pk-accent)"><div class="stat-val">${totalActs}</div><div class="stat-label">Act. Semana Total</div></div>
+    <div class="stat-card" style="--accent-color:#27ae60"><div class="stat-val">${totalCumpl}%</div><div class="stat-label">Cumplimiento Prom.</div></div>
+    <div class="stat-card" style="--accent-color:#7fb3f5"><div class="stat-val">${totalBit}</div><div class="stat-label">Entradas Bitácora</div></div>
+    <div class="stat-card" style="--accent-color:#e74c3c"><div class="stat-val">${totalNov}</div><div class="stat-label">Novedades Alertas</div></div>
+  `;
+
+  // Cobertura semanal
+  const cobertura = PK.getCoberturasSemana(semana);
+  const diasCubiertos = PK.DIAS_SEMANA.filter(d => cobertura[d].length > 0).length;
+  const cobHTML = PK.DIAS_SEMANA.map(dia => {
+    const prevs = cobertura[dia];
+    const color = prevs.length === 0 ? '#c0392b' : prevs.length === 1 ? '#e8a020' : '#27ae60';
+    const label = prevs.length === 0 ? 'Sin cobertura' : prevs.map(pid => PK.PREVENCIONISTAS[pid].nombre.split(' ')[0]).join(' + ');
+    const icons = prevs.length === 0 ? '⚠️' : prevs.length === 1 ? '👷' : '👷👷‍♀️';
+    return `<div style="flex:1;text-align:center;padding:10px 6px;background:rgba(10,15,30,0.5);border-radius:7px;border:1px solid ${color}40;border-top:3px solid ${color}">
+      <div style="font-size:10px;color:var(--pk-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">${dia.substring(0,3)}</div>
+      <div style="font-size:18px;margin-bottom:4px">${icons}</div>
+      <div style="font-size:10px;color:${color};font-weight:600">${label}</div>
+    </div>`;
+  }).join('');
+
+  // Insert cobertura card before the 2-col grid
+  const cobCard = document.getElementById('coberturaCard');
+  if (cobCard) {
+    cobCard.innerHTML = `
+      <div class="card-title">📡 Cobertura Semanal – ${diasCubiertos}/5 días cubiertos
+        <span style="margin-left:auto;font-size:12px;color:${diasCubiertos===5?'#27ae60':diasCubiertos>=3?'#e8a020':'#e74c3c'}">${diasCubiertos===5?'✅ Semana completa':diasCubiertos>=3?'⚠️ Cobertura parcial':'🔴 Baja cobertura'}</span>
+      </div>
+      <div style="display:flex;gap:8px">${cobHTML}</div>
+    `;
+  }
+
+  document.getElementById('dashCumpl').innerHTML = PREVS.map(pid => {
+    const p = PK.PREVENCIONISTAS[pid];
+    const pct = PK.getPorcentajeCumplimiento(pid, semana);
+    const fillClass = pct >= 80 ? '' : pct >= 50 ? 'warn' : 'danger';
+    return `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">${p.avatar}</span>
+          <span style="font-size:13px;font-weight:600">${p.nombre}</span>
+          <span style="margin-left:auto;font-weight:700;color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'}">${pct}%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+        <div class="check-summ">
+          <span>📅 ${p.diasSemana} días/sem</span>
+          <span>📋 ${PK.getPlanSemana(pid, semana)?.actividades?.length || 0} actividades</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  const allBit = PREVS.flatMap(pid => PK.getBitacora(pid).filter(b => b.urgencia === 'alta' || b.urgencia === 'critica'));
+  allBit.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  document.getElementById('dashNov').innerHTML = allBit.slice(0,4).map(b => {
+    const urgColor = { alta: '#e67e22', critica: '#e74c3c' }[b.urgencia] || '#e8a020';
+    const prev = PK.PREVENCIONISTAS[b.prevId];
+    return `<div class="bit-card" style="--urgencia-color:${urgColor}">
+      <div style="display:flex;justify-content:space-between">
+        <div class="bit-title">${b.titulo}</div>
+        <span class="tag tag-${b.urgencia}">${b.urgencia.toUpperCase()}</span>
+      </div>
+      <div class="bit-meta">${prev?.avatar} ${prev?.nombre} · ${new Date(b.fecha).toLocaleDateString('es-CL')}</div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">✅</div><p>Sin novedades críticas</p></div>`;
+}
+
+function renderDetallePrev(pid) {
+  const p = PK.PREVENCIONISTAS[pid];
+  const plan = PK.getPlanSemana(pid, semana);
+  const actividades = plan?.actividades || [];
+  const pct = PK.getPorcentajeCumplimiento(pid, semana);
+  const fillClass = pct >= 80 ? '' : pct >= 50 ? 'warn' : 'danger';
+  const bit = PK.getBitacora(pid);
+  const cumpl = PK.getCumplimiento(pid, semana);
+
+  const cont = document.getElementById('detalle'+pid.charAt(0).toUpperCase()+pid.slice(1));
+  if (!cont) return;
+
+  let ganttHtml = '';
+  if (actividades.length) {
+    const dias = p.diasLabor;
+    ganttHtml = `<div style="overflow-x:auto"><table class="gantt-table"><thead><tr>
+      <th>Actividad</th><th>Empresa</th>
+      ${dias.map(d => `<th class="day-col">${d}</th>`).join('')}
+    </tr></thead><tbody>`;
+    actividades.forEach(a => {
+      const tipo = PK.getTipoActividad(a.tipo);
+      const startH = parseInt(a.horaInicio.split(':')[0]);
+      const durH = parseInt(a.horaFin.split(':')[0]) - startH;
+      ganttHtml += `<tr>
+        <td>${tipo.emoji} ${a.titulo}</td>
+        <td style="font-size:11px;color:var(--pk-muted)">${a.empresa}</td>
+        ${dias.map(dia => {
+          if (dia !== a.dia) return `<td class="day-col"></td>`;
+          return `<td class="day-col"><div class="gantt-bar" style="background:${tipo.color};width:${Math.min(100,durH*20)}%">${a.horaInicio}–${a.horaFin}</div></td>`;
+        }).join('')}
+      </tr>`;
+    });
+    ganttHtml += '</tbody></table></div>';
+  } else {
+    ganttHtml = `<div class="empty-state"><div class="icon">📅</div><p>Sin planificación para esta semana</p></div>`;
+  }
+
+  const icons = { cumplido: '✅', parcial: '⚡', pendiente: '⏳', 'no-aplica': '❌' };
+  const checkHtml = actividades.map(a => {
+    const tipo = PK.getTipoActividad(a.tipo);
+    const estado = cumpl[a.id] || 'pendiente';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(10,15,30,0.4);border-radius:6px;margin-bottom:6px;border-left:3px solid ${tipo.color}">
+      <span style="font-size:16px">${icons[estado]}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600">${tipo.emoji} ${a.titulo}</div>
+        <div style="font-size:11px;color:var(--pk-muted)">${a.empresa} · ${a.dia} ${a.horaInicio}–${a.horaFin}</div>
+      </div>
+      <span class="tag tag-${a.prioridad}">${a.prioridad}</span>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">✅</div><p>Sin actividades</p></div>`;
+
+  const bitHtml = bit.slice(0,5).map(b => {
+    const urgColor = { baja:'#27ae60',media:'#e8a020',alta:'#e67e22',critica:'#e74c3c' }[b.urgencia]||'#7fb3f5';
+    return `<div class="bit-card" style="--urgencia-color:${urgColor}">
+      <div style="display:flex;justify-content:space-between"><div class="bit-title">${b.titulo}</div><span class="tag tag-${b.urgencia}">${b.urgencia.toUpperCase()}</span></div>
+      <div class="bit-meta">${new Date(b.fecha).toLocaleString('es-CL')} · ${b.empresa||'—'}</div>
+      <div class="bit-desc">${b.descripcion}</div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">📓</div><p>Sin entradas</p></div>`;
+
+  cont.innerHTML = `
+    <div class="semana-nav">
+      <button onclick="cambiarSemana(-1)">◀</button>
+      <div class="semana-label">${PK.getSemanaLabel(semana)}</div>
+      <button onclick="cambiarSemana(1)">▶</button>
+      <button class="btn btn-secondary" onclick="cambiarSemana(0)">Hoy</button>
+    </div>
+    <div class="prev-card">
+      <div class="prev-header">
+        <div class="prev-avatar">${p.avatar}</div>
+        <div>
+          <div class="prev-name">${p.nombre}</div>
+          <div class="prev-dias">📅 ${p.diasSemana} días/semana · ${p.diasLabor.join(', ')}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right">
+          <div style="font-size:32px;font-weight:700;color:${pct>=80?'#27ae60':pct>=50?'#e8a020':'#e74c3c'}">${pct}%</div>
+          <div style="font-size:11px;color:var(--pk-muted)">Cumplimiento</div>
+        </div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill ${fillClass}" style="width:${pct}%"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📉 Carta Gantt – ${PK.getSemanaLabel(semana)}</div>
+      ${ganttHtml}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="card">
+        <div class="card-title">✅ Checklist de Cumplimiento</div>
+        ${checkHtml}
+      </div>
+      <div class="card">
+        <div class="card-title">📓 Bitácora Reciente</div>
+        ${bitHtml}
+      </div>
+    </div>`;
+}
+
+function renderComparativo() {
+  let html = '';
+  PREVS.forEach(pid => {
+    const p = PK.PREVENCIONISTAS[pid];
+    const semanas = [];
+    const [yr, sw] = semana.split('-S');
+    for (let i = 0; i < 4; i++) {
+      let w = parseInt(sw) - i; let y = parseInt(yr);
+      if (w < 1) { y--; w += 52; }
+      semanas.push(`${y}-S${String(w).padStart(2,'0')}`);
+    }
+    html += `<div class="card">
+      <div class="card-title">${p.avatar} ${p.nombre} – Últimas 4 semanas</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        ${semanas.map(s => {
+          const pct = PK.getPorcentajeCumplimiento(pid, s);
+          const plan = PK.getPlanSemana(pid, s);
+          const fillClass = pct>=80?'':pct>=50?'warn':'danger';
+          return `<div style="text-align:center;padding:12px;background:rgba(10,15,30,0.5);border-radius:7px">
+            <div style="font-size:11px;color:var(--pk-muted);margin-bottom:6px">${s.replace('-S','·S')}</div>
+            <div style="font-size:24px;font-weight:700;color:${pct>=80?'#27ae60':pct>=50?'#e8a020':pct===0&&!plan?'#8899aa':'#e74c3c'}">${pct}%</div>
+            <div style="font-size:10px;color:var(--pk-muted);margin-top:4px">${plan?.actividades?.length||0} acts.</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('comparativoContent').innerHTML = html;
+}
+
+function renderNotifs() {
+  const notifs = PK.getNotificaciones();
+  const cont = document.getElementById('notifList');
+  if (!notifs.length) { cont.innerHTML = `<div class="empty-state"><div class="icon">🔔</div><p>Sin notificaciones</p></div>`; return; }
+  cont.innerHTML = notifs.slice(0,30).map(n => {
+    const icon = n.tipo === 'planificacion' ? '📅' : '⚠️';
+    return `<div class="notif-list-item ${n.leida?'':'unread'}" onclick="PK.marcarLeida(${n.id});this.classList.remove('unread');updateBadge()">
+      <span class="notif-icon">${icon}</span>
+      <div class="notif-body">
+        <div class="notif-msg">${n.msg}</div>
+        <div class="notif-date">${new Date(n.fecha).toLocaleString('es-CL')}</div>
+      </div>
+      ${!n.leida ? '<span style="font-size:8px;color:var(--pk-accent)">●</span>' : ''}
+    </div>`;
+  }).join('');
+  updateBadge();
+}
+
+function renderEmails() {
+  const emails = JSON.parse(localStorage.getItem('pk_emails') || '[]');
+  const cont = document.getElementById('emailList');
+  if (!emails.length) { cont.innerHTML = `<div class="empty-state"><div class="icon">📧</div><p>Sin emails enviados</p></div>`; return; }
+  cont.innerHTML = emails.map(e => `
+    <div class="email-item">
+      <div class="email-asunto">${e.asunto}</div>
+      <div class="email-dest">📧 Para: ${e.destinatarios.join(', ')} · 📅 ${new Date(e.fecha).toLocaleString('es-CL')}</div>
+      <div class="email-cuerpo">${e.cuerpo}</div>
+    </div>`).join('');
+}
+
+function renderNovedadesGer() {
+  const allNov = PREVS.flatMap(pid => PK.getBitacora(pid).filter(b => b.urgencia === 'alta' || b.urgencia === 'critica'));
+  allNov.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+  const cont = document.getElementById('novedadesGerContent');
+  if (!allNov.length) { cont.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">✅</div><p>Sin novedades críticas registradas</p></div></div>`; return; }
+  cont.innerHTML = `<div class="card">
+    <div class="card-title">Novedades Alta / Crítica</div>
+    ${allNov.map(b => {
+      const urgColor = { alta:'#e67e22', critica:'#e74c3c' }[b.urgencia]||'#e8a020';
+      const prev = PK.PREVENCIONISTAS[b.prevId];
+      return `<div class="bit-card" style="--urgencia-color:${urgColor}">
+        <div style="display:flex;justify-content:space-between">
+          <div class="bit-title">${b.titulo}</div>
+          <span class="tag tag-${b.urgencia}">${b.urgencia.toUpperCase()}</span>
+        </div>
+        <div class="bit-meta">${prev?.avatar||'👷'} ${prev?.nombre||b.prevId} · ${b.empresa||'—'} · ${new Date(b.fecha).toLocaleString('es-CL')}</div>
+        <div class="bit-desc">${b.descripcion}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function updateBadge() {
+  document.getElementById('notifCount').textContent = PK.getUnread();
+}
+
+init();
+</script>
+</body>
+</html>
